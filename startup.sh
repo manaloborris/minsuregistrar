@@ -1,89 +1,60 @@
 #!/bin/bash
 
-# Set working directory
-cd /home/site/wwwroot || exit 1
+set -e
 
-# Make script executable
-chmod +x /home/site/wwwroot/startup.sh
+echo "=== Startup Script Started ===" > /tmp/startup.log
 
-# Create nginx configuration directory if it doesn't exist
+# Ensure we're in the right directory
+cd /home/site/wwwroot
+echo "Working directory: $(pwd)" >> /tmp/startup.log
+
+# Create nginx configuration directory
 mkdir -p /etc/nginx/sites-available
 mkdir -p /etc/nginx/sites-enabled
-mkdir -p /etc/nginx/conf.d
 
-# Remove default nginx config
-rm -f /etc/nginx/sites-enabled/default
-rm -f /etc/nginx/conf.d/default.conf
+# Remove default config
+rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 
-# Create custom nginx configuration for PHP routing
-cat > /etc/nginx/sites-available/php-app << 'NGINX_CONFIG'
+# Create the PHP app configuration
+cat > /etc/nginx/sites-available/app << 'EOF'
 server {
     listen 8080 default_server;
-    listen [::]:8080 default_server;
-    
     server_name _;
     root /home/site/wwwroot;
+    index index.php;
     
-    # Log configuration
-    access_log /var/log/nginx/access.log;
-    error_log /var/log/nginx/error.log warn;
-    
-    # Index files
-    index index.php index.html index.htm;
-    
-    # Gzip compression
-    gzip on;
-    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/json;
-    gzip_vary on;
-    
-    # Route all requests to index.php (Laravel/LavaLite style routing)
     location / {
-        try_files $uri $uri/ /index.php?$query_string;
+        try_files $uri $uri/ /index.php$is_args$args;
     }
     
-    # Handle PHP files
     location ~ \.php$ {
-        try_files $uri /index.php;
-        
         include fastcgi_params;
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_param SCRIPT_NAME $fastcgi_script_name;
-        fastcgi_param REQUEST_URI $request_uri;
-        fastcgi_param PATH_INFO $fastcgi_path_info;
-    }
-    
-    # Deny access to hidden files and directories
-    location ~ /\. {
-        deny all;
-        access_log off;
-        log_not_found off;
-    }
-    
-    # Static files caching
-    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2)$ {
-        expires 7d;
-        add_header Cache-Control "public, immutable";
     }
 }
-NGINX_CONFIG
+EOF
 
 # Enable the site
-ln -sf /etc/nginx/sites-available/php-app /etc/nginx/sites-enabled/php-app 2>/dev/null || true
+ln -sf /etc/nginx/sites-available/app /etc/nginx/sites-enabled/app
+echo "Nginx config created" >> /tmp/startup.log
 
 # Test nginx configuration
-nginx -t
+if nginx -t 2>&1 >> /tmp/startup.log; then
+    echo "Nginx config test passed" >> /tmp/startup.log
+else
+    echo "Nginx config test FAILED" >> /tmp/startup.log
+fi
 
-# Start PHP-FPM in the background
-echo "Starting PHP-FPM..."
-php-fpm8.2 --daemonize --fpm-config /etc/php/8.2/fpm/php-fpm.conf 2>&1 || \
-php-fpm --daemonize 2>&1 || \
-php -S 127.0.0.1:9000 -t /home/site/wwwroot &
+# Start PHP-FPM
+echo "Starting PHP-FPM..." >> /tmp/startup.log
+php-fpm8.2 --daemonize --fpm-config /etc/php/8.2/fpm/php-fpm.conf 2>&1 >> /tmp/startup.log || \
+php-fpm --daemonize 2>&1 >> /tmp/startup.log || \
+true
 
-# Wait a bit for PHP-FPM to start
-sleep 2
+sleep 1
 
-# Start nginx in foreground
-echo "Starting nginx..."
+# Start nginx
+echo "Starting nginx..." >> /tmp/startup.log
 exec nginx -g "daemon off;"

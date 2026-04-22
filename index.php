@@ -2,6 +2,16 @@
 //app root
 define('APP_ROOT', __DIR__);
 
+// Debug: Check if we got here via proper routing or need to redirect
+if (php_sapi_name() !== 'cli') {
+    $request_uri = $_SERVER['REQUEST_URI'] ?? '/';
+    $script_name = $_SERVER['SCRIPT_NAME'] ?? '';
+    
+    // If REQUEST_URI doesn't match SCRIPT_NAME, we might have a routing issue
+    // For debugging on Azure
+    $_SERVER['REQUEST_URI'] = $request_uri;
+}
+
 //headers
 header("X-Frame-Options: DENY");
 header("X-Content-Type-Options: nosniff");
