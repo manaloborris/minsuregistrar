@@ -67,4 +67,11 @@ jobs:
           app-name: 'minsu-eregistrar'
           slot-name: 'Production'
           package: .
+      
+      - name: 'Configure startup script'
+        uses: azure/CLI@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az webapp config set --resource-group minsu-registrar-rg --name minsu-eregistrar --startup-file "bash /home/site/wwwroot/startup.sh"
           
