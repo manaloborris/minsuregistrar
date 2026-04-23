@@ -1,3 +1,3 @@
 <?php
-header('Location: /index.php?url=student/dashboard', true, 302);
+header('Location: /student/dashboard', true, 301);
 exit;

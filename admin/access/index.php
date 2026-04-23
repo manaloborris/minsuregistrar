@@ -1,3 +1,3 @@
 <?php
-header('Location: /index.php?url=admin/access', true, 302);
+header('Location: /admin/access', true, 301);
 exit;

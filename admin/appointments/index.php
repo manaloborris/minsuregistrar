@@ -1,3 +1,3 @@
 <?php
-header('Location: /index.php?url=admin/appointments', true, 302);
+header('Location: /admin/appointments', true, 301);
 exit;

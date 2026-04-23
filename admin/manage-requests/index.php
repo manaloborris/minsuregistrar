@@ -1,3 +1,3 @@
 <?php
-header('Location: /index.php?url=admin/manage-requests', true, 302);
+header('Location: /admin/manage-requests', true, 301);
 exit;

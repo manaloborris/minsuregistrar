@@ -1,3 +1,3 @@
 <?php
-header('Location: /index.php?url=admin/dashboard', true, 302);
+header('Location: /admin/dashboard', true, 301);
 exit;

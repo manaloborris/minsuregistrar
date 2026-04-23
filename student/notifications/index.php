@@ -1,3 +1,3 @@
 <?php
-header('Location: /index.php?url=student/notifications', true, 302);
+header('Location: /student/notifications', true, 301);
 exit;

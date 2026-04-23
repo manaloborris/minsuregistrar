@@ -1,3 +1,3 @@
 <?php
-header('Location: /index.php?url=student/track-requests', true, 302);
+header('Location: /student/track-requests', true, 301);
 exit;

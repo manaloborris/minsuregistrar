@@ -1,3 +1,3 @@
 <?php
-header('Location: /index.php?url=admin/logout', true, 302);
+header('Location: /admin/logout', true, 301);
 exit;
