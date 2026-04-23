@@ -1,3 +1,3 @@
 <?php
-header('Location: /index.php?url=about', true, 302);
+header('Location: /about', true, 301);
 exit;
